@@ -1,0 +1,10 @@
+run:
+  concurrency: 4
+  timeout: 5m
+  tests: false
+  allow-parallel-runners: true
+  go: '1.22'
+
+linters:
+  enable-all: false
+  fast: false
