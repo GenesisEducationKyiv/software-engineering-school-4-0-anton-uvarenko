@@ -40,6 +40,7 @@ func (c CurrencyConverter) GetUAHToUSD() (float32, error) {
 	if err != nil {
 		return 0, pkg.ErrFailPerformRequest
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return 0, pkg.ErrUnexpectedStatusCode

@@ -25,7 +25,7 @@ func NewEmailService(emailRepo emailRepo, sender emailSender, converter currency
 }
 
 type emailSender interface {
-	SendEmail(To string, message string) error
+	SendEmail(to string, message string) error
 }
 
 type emailRepo interface {

@@ -20,10 +20,10 @@ func NewEmailSender(from string, password string) *EmailSender {
 	}
 }
 
-func (s EmailSender) SendEmail(To string, message string) error {
+func (s EmailSender) SendEmail(to string, message string) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", s.from)
-	m.SetHeader("To", To)
+	m.SetHeader("To", to)
 	m.SetBody("text/plain", message)
 	d := gomail.NewDialer("smtp.gmail.com", 587, s.from, s.password)
 	err := d.DialAndSend(m)
