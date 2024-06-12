@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -34,13 +35,16 @@ func main() {
 	server.RegisterJobs(scheduler, service.EmailService)
 	scheduler.Start()
 
-	go httpServer.ListenAndServe()
+	go log.Fatal(httpServer.ListenAndServe())
 
 	finish := make(chan os.Signal, 1)
 	signal.Notify(finish, os.Interrupt, syscall.SIGTERM)
 
 	<-finish
 
-	scheduler.Shutdown()
+	err := scheduler.Shutdown()
+	if err != nil {
+		log.Fatal(err)
+	}
 	conn.Close(context.Background())
 }

@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/anton-uvarenko/backend_school/internal/transport"
 	"github.com/gin-gonic/gin"
@@ -9,8 +10,9 @@ import (
 
 func NewServer(handler *transport.Handler) *http.Server {
 	return &http.Server{
-		Addr:    ":8080",
-		Handler: registerRoutes(handler),
+		Addr:              ":8080",
+		Handler:           registerRoutes(handler),
+		ReadHeaderTimeout: time.Second * 30,
 	}
 }
 

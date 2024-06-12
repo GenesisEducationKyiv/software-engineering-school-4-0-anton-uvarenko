@@ -13,7 +13,7 @@ type EmailSenderMock struct {
 	ExpectedError error
 }
 
-func (m *EmailSenderMock) SendEmail(To string, message string) error {
+func (m *EmailSenderMock) SendEmail(to string, message string) error {
 	return m.ExpectedError
 }
 

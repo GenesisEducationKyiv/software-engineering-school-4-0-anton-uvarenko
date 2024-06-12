@@ -17,5 +17,8 @@ func main() {
 		log.Fatal("can't run migrations: ", err)
 	}
 
-	m.Up()
+	err = m.Up()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
