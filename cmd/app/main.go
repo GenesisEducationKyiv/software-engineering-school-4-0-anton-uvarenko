@@ -37,6 +37,7 @@ func main() {
 
 	go log.Fatal(httpServer.ListenAndServe())
 
+	// gracefull shutdown
 	finish := make(chan os.Signal, 1)
 	signal.Notify(finish, os.Interrupt, syscall.SIGTERM)
 

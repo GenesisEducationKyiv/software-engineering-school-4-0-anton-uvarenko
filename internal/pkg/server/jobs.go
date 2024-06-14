@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/anton-uvarenko/backend_school/internal/pkg"
 	"github.com/anton-uvarenko/backend_school/internal/service"
@@ -13,7 +12,7 @@ import (
 
 func RegisterJobs(scheduler gocron.Scheduler, emailService *service.EmailService) {
 	_, err := scheduler.NewJob(
-		gocron.DurationJob(time.Hour*24),
+		gocron.CronJob("0 3 * * *", false),
 		gocron.NewTask(
 			func(service *service.EmailService) {
 				err := service.SendEmails(context.Background())
