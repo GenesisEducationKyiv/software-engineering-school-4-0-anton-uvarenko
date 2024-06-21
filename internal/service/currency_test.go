@@ -4,50 +4,45 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/anton-uvarenko/backend_school/internal/pkg"
 	"github.com/stretchr/testify/assert"
 )
 
-type ConverterMock struct {
-	ExpectedError error
-}
+func TestCurrencyService_Rate(t *testing.T) {
+	mockConverter := new(mockCurrencyConverter)
+	service := NewCurrencySevice(mockConverter)
 
-func (m *ConverterMock) GetUAHToUSD() (float32, error) {
-	if m.ExpectedError != nil {
-		return 0, m.ExpectedError
-	}
-
-	return 13, nil
-}
-
-func TestRate(t *testing.T) {
-	testTable := []struct {
-		Name           string
-		ExpectedError  error
-		ExpectedResult float32
+	tests := []struct {
+		name          string
+		mockRate      float32
+		mockError     error
+		expectedRate  float32
+		expectedError error
 	}{
 		{
-			Name:           "OK",
-			ExpectedError:  nil,
-			ExpectedResult: 13,
+			name:          "Successful rate retrieval",
+			mockRate:      28.5,
+			mockError:     nil,
+			expectedRate:  28.5,
+			expectedError: nil,
 		},
 		{
-			Name:           "Unexpected status code",
-			ExpectedError:  pkg.ErrUnexpectedStatusCode,
-			ExpectedResult: 0,
+			name:          "Currency converter error",
+			mockRate:      0,
+			mockError:     errors.New("converter error"),
+			expectedRate:  0,
+			expectedError: errors.New("converter error"),
 		},
 	}
 
-	for _, testCase := range testTable {
-		t.Run(testCase.Name, func(t *testing.T) {
-			converter := &ConverterMock{
-				ExpectedError: testCase.ExpectedError,
-			}
-			service := NewCurrencySevice(converter)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockConverter.On("GetUAHToUSD").Return(tt.mockRate, tt.mockError)
 
-			result, err := service.Rate()
-			assert.Equal(t, result, testCase.ExpectedResult)
-			assert.Equal(t, errors.Is(err, testCase.ExpectedError), true)
+			rate, err := service.Rate()
+
+			assert.Equal(t, tt.expectedRate, rate)
+			assert.Equal(t, tt.expectedError, err)
+			mockConverter.AssertExpectations(t)
 		})
 	}
 }

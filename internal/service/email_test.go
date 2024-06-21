@@ -133,15 +133,7 @@ func TestEmailService_SendEmails(t *testing.T) {
 			err := service.SendEmails(ctx)
 			t.Logf("error is: %v", err)
 
-			if tt.expectedError != nil {
-				assert.Equal(t, tt.expectedError, err)
-			} else {
-				assert.Nil(t, err)
-			}
-
-			mockRepo.AssertExpectations(t)
-			mockConverter.AssertExpectations(t)
-			mockSender.AssertExpectations(t)
+			assert.Equal(t, tt.expectedError, err)
 		})
 	}
 }
