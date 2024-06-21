@@ -1,8 +1,10 @@
 package transport
 
 import (
+	"errors"
 	"net/http"
 
+	"github.com/anton-uvarenko/backend_school/internal/pkg"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,11 +25,10 @@ type currencyService interface {
 func (h *CurrencyHandler) Rate(ctx *gin.Context) {
 	rate, err := h.currencyService.Rate()
 	if err != nil {
-		// commeted because documentation doesn't expect this
-		// if errors.Is(err, pkg.ErrCurrencyNotFound) {
-		// 	ctx.AbortWithStatus(http.StatusNotFound)
-		// 	return
-		// }
+		if errors.Is(err, pkg.ErrCurrencyNotFound) {
+			ctx.AbortWithStatus(http.StatusNotFound)
+			return
+		}
 
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
