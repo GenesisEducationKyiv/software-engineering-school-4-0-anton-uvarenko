@@ -10,7 +10,8 @@ import (
 
 	"github.com/anton-uvarenko/backend_school/internal/core"
 	"github.com/anton-uvarenko/backend_school/internal/db"
-	"github.com/anton-uvarenko/backend_school/internal/pkg/currency"
+	"github.com/anton-uvarenko/backend_school/internal/pkg/currency/chain"
+	"github.com/anton-uvarenko/backend_school/internal/pkg/currency/provider"
 	"github.com/anton-uvarenko/backend_school/internal/pkg/email"
 	"github.com/anton-uvarenko/backend_school/internal/pkg/server"
 	"github.com/anton-uvarenko/backend_school/internal/service"
@@ -24,9 +25,14 @@ func main() {
 	queries := core.New(conn)
 
 	emailSender := email.NewEmailSender(os.Getenv("FROM_EMAIL"), os.Getenv("FROM_EMAIL_PASSWORD"))
-	converter := currency.NewCurrencyConverter(http.DefaultClient)
 
-	service := service.NewService(queries, emailSender, converter)
+	monobankProvider := provider.NewMonobankProvider(http.DefaultClient)
+	beaconProvider := provider.NewBeaconProvider(http.DefaultClient, os.Getenv("BEACONAPIKEY"))
+	baseMonobankChain := chain.NewBaseChain(monobankProvider)
+	baseBeaconChain := chain.NewBaseChain(beaconProvider)
+	baseMonobankChain.SetNext(baseBeaconChain)
+
+	service := service.NewService(queries, emailSender, baseMonobankChain)
 	handler := transport.NewHandler(service)
 
 	httpServer := server.NewServer(handler)
