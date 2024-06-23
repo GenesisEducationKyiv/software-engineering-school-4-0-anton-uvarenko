@@ -1,6 +1,9 @@
 package chain
 
-import "github.com/anton-uvarenko/backend_school/internal/pkg/currency/provider"
+import (
+	"github.com/anton-uvarenko/backend_school/internal/pkg"
+	"github.com/anton-uvarenko/backend_school/internal/pkg/currency/provider"
+)
 
 type ProvidersChain interface {
 	GetUAHToUSD() (float32, error)
@@ -30,7 +33,7 @@ func (c *BaseChain) GetUAHToUSD() (float32, error) {
 
 	next := c.next
 	if next == nil {
-		return 0, nil
+		return 0, pkg.ErrProviders
 	}
 
 	return next.GetUAHToUSD()
