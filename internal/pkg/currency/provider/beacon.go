@@ -34,6 +34,9 @@ func (p *BeaconProvider) GetUAHToUSD() (float32, error) {
 	if err != nil {
 		return 0, pkg.ErrFailPerformRequest
 	}
+	defer func() {
+		resp.Body.Close()
+	}()
 
 	result := beaconResponse{}
 	err = json.NewDecoder(resp.Body).Decode(&result)
