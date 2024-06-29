@@ -30,7 +30,7 @@ func (c *BaseChain) SetNext(next ProvidersChain) {
 func (c *BaseChain) GetUAHToUSD() (float32, error) {
 	rate, err := c.provider.GetUAHToUSD()
 	if err == nil {
-		fmt.Printf("error receving rate: %v\n", err)
+		fmt.Printf("error receiving rate: %v\n", err)
 		return rate, nil
 	}
 
