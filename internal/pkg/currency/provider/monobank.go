@@ -49,7 +49,7 @@ func (c *MonobankProvider) GetUAHToUSD() (float32, error) {
 		return 0, pkg.ErrFailDecodeResponse
 	}
 
-	currency, err := findUahToUsd(result)
+	currency, err := c.findUahToUsd(result)
 	if err != nil {
 		return 0, err
 	}
@@ -57,7 +57,7 @@ func (c *MonobankProvider) GetUAHToUSD() (float32, error) {
 	return currency.RateSell, nil
 }
 
-func findUahToUsd(data []response) (response, error) {
+func (MonobankProvider) findUahToUsd(data []response) (response, error) {
 	for _, v := range data {
 		if v.CurrencyCodeA == USDISO4217Code &&
 			v.CurrencyCodeB == UAHISO4217Code {
