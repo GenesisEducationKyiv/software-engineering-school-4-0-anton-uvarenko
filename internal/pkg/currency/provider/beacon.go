@@ -2,6 +2,7 @@ package provider
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
 
 	"github.com/anton-uvarenko/backend_school/internal/pkg"
@@ -43,6 +44,8 @@ func (p *BeaconProvider) GetUAHToUSD() (float32, error) {
 	if err != nil {
 		return 0, pkg.ErrFailDecodeResponse
 	}
+
+	fmt.Printf("beacon rate: %f", result.Value)
 
 	return result.Value, nil
 }

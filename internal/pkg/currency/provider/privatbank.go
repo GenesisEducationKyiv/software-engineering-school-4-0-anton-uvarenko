@@ -40,6 +40,7 @@ func (c *PrivatBankProvider) GetUAHToUSD() (float32, error) {
 	if err != nil {
 		return 0, fmt.Errorf("%v: %v", pkg.ErrFailDecodeResponse, err)
 	}
+	fmt.Printf("privatbank rates: %v", result)
 
 	currency, err := c.findUahToUsd(result)
 	if err != nil {

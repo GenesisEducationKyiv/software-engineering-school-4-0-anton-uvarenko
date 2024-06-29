@@ -13,11 +13,11 @@ type ProvidersChain interface {
 }
 
 type BaseChain struct {
-	provider provider.CurrencyProivder
+	provider provider.CurrencyProvider
 	next     ProvidersChain
 }
 
-func NewBaseChain(provider provider.CurrencyProivder) *BaseChain {
+func NewBaseChain(provider provider.CurrencyProvider) *BaseChain {
 	return &BaseChain{
 		provider: provider,
 	}

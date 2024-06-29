@@ -2,7 +2,7 @@ package provider
 
 import "net/http"
 
-type CurrencyProivder interface {
+type CurrencyProvider interface {
 	GetUAHToUSD() (float32, error)
 }
 

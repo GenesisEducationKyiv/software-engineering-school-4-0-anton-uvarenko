@@ -48,6 +48,7 @@ func (c *MonobankProvider) GetUAHToUSD() (float32, error) {
 		fmt.Println(err)
 		return 0, pkg.ErrFailDecodeResponse
 	}
+	fmt.Printf("monobank rates: %v", result)
 
 	currency, err := c.findUahToUsd(result)
 	if err != nil {
