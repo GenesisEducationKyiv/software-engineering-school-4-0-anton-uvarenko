@@ -16,4 +16,6 @@ var (
 	ErrCronJob            = errors.New("cronjob error")
 
 	ErrRate = errors.New("rate error")
+
+	ErrProviders = errors.New("no successful response from providers")
 )
