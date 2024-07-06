@@ -28,9 +28,14 @@ func main() {
 
 	monobankProvider := provider.NewMonobankProvider(http.DefaultClient)
 	beaconProvider := provider.NewBeaconProvider(http.DefaultClient, os.Getenv("BEACONAPIKEY"))
+	privatProvider := provider.NewPrivatBankProvider(http.DefaultClient)
+
 	baseMonobankChain := chain.NewBaseChain(monobankProvider)
 	baseBeaconChain := chain.NewBaseChain(beaconProvider)
+	basePrivatChain := chain.NewBaseChain(privatProvider)
+
 	baseMonobankChain.SetNext(baseBeaconChain)
+	baseBeaconChain.SetNext(basePrivatChain)
 
 	service := service.NewService(queries, emailSender, baseMonobankChain)
 	handler := transport.NewHandler(service)
