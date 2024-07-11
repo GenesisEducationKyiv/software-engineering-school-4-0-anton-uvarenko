@@ -7,6 +7,8 @@
 *.dll
 *.so
 *.dylib
+base_service_application
+notification_service_application
 
 # Test binary, built with `go test -c`
 *.test
