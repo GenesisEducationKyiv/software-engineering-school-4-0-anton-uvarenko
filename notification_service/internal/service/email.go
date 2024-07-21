@@ -2,8 +2,12 @@ package service
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"time"
 
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo"
+	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo/sender"
 )
 
 type EmailService struct {
@@ -13,6 +17,7 @@ type EmailService struct {
 
 type emailRepo interface {
 	AddEmail(ctx context.Context, arg repo.AddEmailParams) error
+	GetAll(ctx context.Context) ([]repo.SendedEmail, error)
 }
 
 type emailSender interface {
@@ -30,6 +35,36 @@ func (s *EmailService) SaveEmail(ctx context.Context, arg repo.AddEmailParams) e
 	err := s.emailRepo.AddEmail(ctx, arg)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s *EmailService) SendEmails(ctx context.Context, rate float32) error {
+	sendedEmails, err := s.emailRepo.GetAll(ctx)
+	if err != nil {
+		return err
+	}
+
+	if len(sendedEmails) == 0 {
+		return nil
+	}
+
+	sendedCount := 0
+	for _, sendedEmail := range sendedEmails {
+		if time.Since(sendedEmail.UpdatedAt.Time) > time.Hour*24 {
+			err := s.SendEmail(sendedEmail.Email.String, fmt.Sprintf("%s %f", sender.DEFAULT_EMAIL_MESSAGE, rate))
+			if err != nil {
+				fmt.Printf("can't send email to %s: %v", sendedEmail.Email.String, err)
+				continue
+			}
+
+			sendedCount++
+		}
+	}
+
+	if sendedCount == 0 {
+		return errors.New("no emails were sended")
 	}
 
 	return nil
