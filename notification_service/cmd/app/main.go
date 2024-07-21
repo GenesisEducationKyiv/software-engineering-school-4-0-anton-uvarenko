@@ -20,7 +20,7 @@ func main() {
 
 	emailService := service.NewEmailService(emailRepo, emailSender)
 
-	emailConsumer := transport.NewEmailConsumer(emailSender, emailService)
+	emailConsumer := transport.NewEmailConsumer(emailService)
 	emailConsumer.InitializeTopics()
 	go emailConsumer.Consume()
 
