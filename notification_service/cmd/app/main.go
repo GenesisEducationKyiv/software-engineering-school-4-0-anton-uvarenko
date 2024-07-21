@@ -10,8 +10,11 @@ import (
 )
 
 func main() {
+	// connection := db.Connect()
+
 	emailSender := service.NewEmailSender(os.Getenv("FROM_EMAIL"), os.Getenv("FROM_EMAIL_PASSWORD"))
 	emailConsumer := transport.NewEmailConsumer(emailSender)
+	emailConsumer.InitializeTopics()
 	go emailConsumer.Consume()
 
 	finish := make(chan os.Signal, 1)
