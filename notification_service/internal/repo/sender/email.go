@@ -4,6 +4,8 @@ import (
 	gomail "gopkg.in/mail.v2"
 )
 
+const DEFAULT_EMAIL_MESSAGE = "current rate is"
+
 type EmailSender struct {
 	from     string
 	smtpHost string
