@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
@@ -11,17 +10,19 @@ import (
 )
 
 type EmailService struct {
-	emailRepo         emailRepo
-	emailSender       emailSender
-	currencyConverter rateConverter
+	emailRepo          emailRepo
+	emailEventProducer emailEventProducer
 }
 
-func NewEmailService(emailRepo emailRepo, sender emailSender, converter rateConverter) *EmailService {
+func NewEmailService(emailRepo emailRepo, emailEventProducer emailEventProducer) *EmailService {
 	return &EmailService{
-		emailSender:       sender,
-		emailRepo:         emailRepo,
-		currencyConverter: converter,
+		emailRepo:          emailRepo,
+		emailEventProducer: emailEventProducer,
 	}
+}
+
+type emailEventProducer interface {
+	ProduceEmailEvent(email string) error
 }
 
 type emailSender interface {
@@ -53,29 +54,9 @@ func (s *EmailService) AddEmail(ctx context.Context, email string) error {
 		return pkg.ErrDBInternal
 	}
 
-	return nil
-}
-
-func (s *EmailService) SendEmails(ctx context.Context) error {
-	emails, err := s.emailRepo.GetAll(ctx)
+	err = s.emailEventProducer.ProduceEmailEvent(email)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return pkg.ErrNoEmailsRegistered
-		}
-
-		fmt.Printf("%v: [%v]\n", pkg.ErrDBInternal, err)
-		return pkg.ErrDBInternal
-	}
-
-	currentCurrency, err := s.currencyConverter.GetUAHToUSD()
-	if err != nil {
-		return err
-	}
-	for _, email := range emails {
-		err = s.emailSender.SendEmail(email, fmt.Sprintf("current ratio uah to usd is %v", currentCurrency))
-		if err != nil {
-			fmt.Printf("%v: [%v]", pkg.ErrEmailSend, err)
-		}
+		fmt.Printf("can't produce email event: %v", err)
 	}
 
 	return nil
