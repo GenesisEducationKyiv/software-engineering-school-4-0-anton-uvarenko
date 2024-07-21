@@ -1,32 +1,42 @@
 package service
 
 import (
-	gomail "gopkg.in/mail.v2"
+	"context"
+
+	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo"
 )
 
-type EmailSender struct {
-	from     string
-	smtpHost string
-	smtpPort string
-	password string
+type EmailService struct {
+	emailRepo   emailRepo
+	emailSender emailSender
 }
 
-func NewEmailSender(from string, password string) *EmailSender {
-	return &EmailSender{
-		from:     from,
-		smtpHost: "smtp.gmail.com",
-		smtpPort: "587",
-		password: password,
+type emailRepo interface {
+	AddEmail(ctx context.Context, arg repo.AddEmailParams) error
+}
+
+type emailSender interface {
+	SendEmail(to string, message string) error
+}
+
+func NewEmailService(emailRepo emailRepo, emailSender emailSender) *EmailService {
+	return &EmailService{
+		emailRepo:   emailRepo,
+		emailSender: emailSender,
 	}
 }
 
-func (s EmailSender) SendEmail(to string, message string) error {
-	m := gomail.NewMessage()
-	m.SetHeader("From", s.from)
-	m.SetHeader("To", to)
-	m.SetBody("text/plain", message)
-	d := gomail.NewDialer("smtp.gmail.com", 587, s.from, s.password)
-	err := d.DialAndSend(m)
+func (s *EmailService) SaveEmail(ctx context.Context, arg repo.AddEmailParams) error {
+	err := s.emailRepo.AddEmail(ctx, arg)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *EmailService) SendEmail(to string, message string) error {
+	err := s.emailSender.SendEmail(to, message)
 	if err != nil {
 		return err
 	}

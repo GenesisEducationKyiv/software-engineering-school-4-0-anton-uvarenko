@@ -5,20 +5,27 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
 type EmailConsumer struct {
-	consumer    *kafka.Consumer
-	topicName   string
-	emailSender EmailSender
+	consumer     *kafka.Consumer
+	topicName    string
+	emailSender  emailSender
+	emailService emailService
 }
 
-type EmailSender interface {
+type emailSender interface {
 	SendEmail(to string, message string) error
 }
 
-func NewEmailConsumer(emailSender EmailSender) *EmailConsumer {
+type emailService interface {
+	SaveEmail(ctx context.Context, arg repo.AddEmailParams) error
+	SendEmail(to string, message string) error
+}
+
+func NewEmailConsumer(emailSender emailSender, emaemailService emailService) *EmailConsumer {
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": "localhost:9092",
 		"group.id":          "emails",
@@ -28,9 +35,10 @@ func NewEmailConsumer(emailSender EmailSender) *EmailConsumer {
 		panic(err)
 	}
 	return &EmailConsumer{
-		consumer:    consumer,
-		topicName:   "emails",
-		emailSender: emailSender,
+		consumer:     consumer,
+		topicName:    "emails",
+		emailSender:  emailSender,
+		emailService: emaemailService,
 	}
 }
 

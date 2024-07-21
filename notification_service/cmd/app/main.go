@@ -5,15 +5,22 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/db"
+	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo"
+	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo/sender"
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/service"
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/transport"
 )
 
 func main() {
-	// connection := db.Connect()
+	connection := db.Connect()
+	emailRepo := repo.New(connection)
 
-	emailSender := service.NewEmailSender(os.Getenv("FROM_EMAIL"), os.Getenv("FROM_EMAIL_PASSWORD"))
-	emailConsumer := transport.NewEmailConsumer(emailSender)
+	emailSender := sender.NewEmailSender(os.Getenv("FROM_EMAIL"), os.Getenv("FROM_EMAIL_PASSWORD"))
+
+	emailService := service.NewEmailService(emailRepo, emailSender)
+
+	emailConsumer := transport.NewEmailConsumer(emailSender, emailService)
 	emailConsumer.InitializeTopics()
 	go emailConsumer.Consume()
 
