@@ -7,6 +7,13 @@ INSERT INTO sended_emails (
   $2
 );
 
+-- name: UpdateEmail :exec
+UPDATE sended_emails
+SET 
+  updated_at = $2
+WHERE
+  email = $1;
+
 -- name: GetAll :many
 SELECT * FROM sended_emails;
 

@@ -54,3 +54,21 @@ func (q *Queries) GetAll(ctx context.Context) ([]SendedEmail, error) {
 	}
 	return items, nil
 }
+
+const updateEmail = `-- name: UpdateEmail :exec
+UPDATE sended_emails
+SET 
+  updated_at = $2
+WHERE
+  email = $1
+`
+
+type UpdateEmailParams struct {
+	Email     pgtype.Text
+	UpdatedAt pgtype.Timestamp
+}
+
+func (q *Queries) UpdateEmail(ctx context.Context, arg UpdateEmailParams) error {
+	_, err := q.db.Exec(ctx, updateEmail, arg.Email, arg.UpdatedAt)
+	return err
+}
