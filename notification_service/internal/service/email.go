@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo"
@@ -52,13 +54,21 @@ func (s *EmailService) SendEmails(ctx context.Context, rate float32) error {
 		return nil
 	}
 
-	sendedCount := 0
+	sendedCount := &atomic.Int32{}
+	wg := &sync.WaitGroup{}
+
 	for _, sendedEmail := range sendedEmails {
-		if time.Since(sendedEmail.UpdatedAt.Time) > time.Hour*24 {
+		wg.Add(1)
+
+		go func() {
+			if time.Since(sendedEmail.UpdatedAt.Time) < time.Hour*24 {
+				return
+			}
+
 			err := s.SendEmail(sendedEmail.Email.String, fmt.Sprintf("%s %f", sender.DEFAULT_EMAIL_MESSAGE, rate))
 			if err != nil {
 				fmt.Printf("can't send email to %s: %v", sendedEmail.Email.String, err)
-				continue
+				return
 			}
 
 			err = s.emailRepo.UpdateEmail(ctx, repo.UpdateEmailParams{
@@ -67,14 +77,16 @@ func (s *EmailService) SendEmails(ctx context.Context, rate float32) error {
 			})
 			if err != nil {
 				fmt.Printf("can't update email %s: %v", sendedEmail.Email.String, err)
-				continue
+				return
 			}
 
-			sendedCount++
-		}
+			sendedCount.Add(1)
+		}()
 	}
 
-	if sendedCount == 0 {
+	wg.Wait()
+
+	if sendedCount.Load() == 0 {
 		return errors.New("no emails were sended")
 	}
 
