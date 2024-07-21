@@ -1,5 +1,5 @@
 -- name: AddEmail :exec
-INSERT INTO sened_emails (
+INSERT INTO sended_emails (
   email,
   updated_at
 ) VALUES (
@@ -8,5 +8,5 @@ INSERT INTO sened_emails (
 );
 
 -- name: GetAll :many
-SELECT * FROM emails;
+SELECT * FROM sended_emails;
 
