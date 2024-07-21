@@ -4,20 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type EmailConsumer struct {
 	consumer     *kafka.Consumer
 	topicName    string
-	emailSender  emailSender
 	emailService emailService
-}
-
-type emailSender interface {
-	SendEmail(to string, message string) error
 }
 
 type emailService interface {
@@ -25,7 +22,7 @@ type emailService interface {
 	SendEmail(to string, message string) error
 }
 
-func NewEmailConsumer(emailSender emailSender, emaemailService emailService) *EmailConsumer {
+func NewEmailConsumer(emaemailService emailService) *EmailConsumer {
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": "localhost:9092",
 		"group.id":          "emails",
@@ -37,7 +34,6 @@ func NewEmailConsumer(emailSender emailSender, emaemailService emailService) *Em
 	return &EmailConsumer{
 		consumer:     consumer,
 		topicName:    "emails",
-		emailSender:  emailSender,
 		emailService: emaemailService,
 	}
 }
@@ -75,13 +71,14 @@ func (h EmailConsumer) Consume() {
 	}
 }
 
-type emailPayload struct {
-	To      string `json:"to"`
-	Message string `json:"message"`
+type emailSubscribePayload struct {
+	Email string `json:"email"`
 }
 
 func (h EmailConsumer) handle(msg []byte) {
-	payload := emailPayload{}
+	ctx, _ := context.WithTimeout(context.Background(), time.Minute*2)
+
+	payload := emailSubscribePayload{}
 
 	err := json.Unmarshal(msg, &payload)
 	if err != nil {
@@ -89,7 +86,12 @@ func (h EmailConsumer) handle(msg []byte) {
 		return
 	}
 
-	err = h.emailSender.SendEmail(payload.To, payload.Message)
+	err = h.emailService.SaveEmail(ctx, repo.AddEmailParams{
+		Email: pgtype.Text{
+			String: payload.Email,
+			Valid:  true,
+		},
+	})
 	if err != nil {
 		fmt.Printf("can't send email: %v", err)
 		return
