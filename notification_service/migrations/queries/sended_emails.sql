@@ -1,6 +1,6 @@
 -- name: AddEmail :exec
 INSERT INTO sened_emails (
-  email
+  email,
   updated_at
 ) VALUES (
   $1,
