@@ -12,7 +12,7 @@ import (
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/server"
 	"github.com/joho/godotenv"
 
-	emailCore "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/email/core"
+	emailRepo "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/email/repo"
 	emailEventProducer "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/email/repo/producer"
 	emailService "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/email/service"
 	emailTranport "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/email/transport"
@@ -28,7 +28,7 @@ func main() {
 	godotenv.Load()
 
 	conn := db.Connect()
-	emailDBRepo := emailCore.New(conn)
+	emailDBRepo := emailRepo.New(conn)
 
 	emailEventProducer := emailEventProducer.NewRateProducer()
 	log.Fatal(emailEventProducer.RegisterTopics())

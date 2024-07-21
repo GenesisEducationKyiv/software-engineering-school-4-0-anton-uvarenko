@@ -7,6 +7,7 @@ import (
 
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/pkg"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type EmailService struct {
@@ -25,13 +26,8 @@ type emailEventProducer interface {
 	ProduceEmailEvent(email string) error
 }
 
-type emailSender interface {
-	SendEmail(to string, message string) error
-}
-
 type emailRepo interface {
-	AddEmail(ctx context.Context, email string) error
-	GetAll(ctx context.Context) ([]string, error)
+	AddUser(ctx context.Context, email pgtype.Text) error
 }
 
 type rateConverter interface {
@@ -39,7 +35,7 @@ type rateConverter interface {
 }
 
 func (s *EmailService) AddEmail(ctx context.Context, email string) error {
-	err := s.emailRepo.AddEmail(ctx, email)
+	err := s.emailRepo.AddUser(ctx, pgtype.Text{String: email, Valid: true})
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
