@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -24,15 +25,19 @@ func NewEmailService(emailRepo emailRepo, emailEventProducer emailEventProducer)
 
 type emailEventProducer interface {
 	ProduceSubscribedEvent(email string) error
+	ProduceUnsubscribedEvent(email string) error
 }
 
 type emailRepo interface {
 	AddUser(ctx context.Context, email pgtype.Text) error
+	DeleteUser(ctx context.Context, email pgtype.Text) error
 }
 
 type rateConverter interface {
 	GetUAHToUSD() (float32, error)
 }
+
+// TODO: add transactional outbox
 
 func (s *EmailService) AddEmail(ctx context.Context, email string) error {
 	err := s.emailRepo.AddUser(ctx, pgtype.Text{String: email, Valid: true})
@@ -52,7 +57,26 @@ func (s *EmailService) AddEmail(ctx context.Context, email string) error {
 
 	err = s.emailEventProducer.ProduceSubscribedEvent(email)
 	if err != nil {
-		fmt.Printf("can't produce email event: %v", err)
+		fmt.Printf("can't produce subscribe event: %v", err)
+	}
+
+	return nil
+}
+
+func (s *EmailService) Unsubscribe(ctx context.Context, email string) error {
+	err := s.emailRepo.DeleteUser(ctx, pgtype.Text{String: email, Valid: true})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return pkg.ErrEmailIsNotRegistered
+		}
+
+		fmt.Printf("%v: [%v]\n", pkg.ErrDBInternal, err)
+		return pkg.ErrDBInternal
+	}
+
+	err = s.emailEventProducer.ProduceUnsubscribedEvent(email)
+	if err != nil {
+		fmt.Printf("can't produce unsubscribe event: %v", err)
 	}
 
 	return nil

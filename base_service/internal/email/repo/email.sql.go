@@ -23,3 +23,13 @@ func (q *Queries) AddUser(ctx context.Context, email pgtype.Text) error {
 	_, err := q.db.Exec(ctx, addUser, email)
 	return err
 }
+
+const deleteUser = `-- name: DeleteUser :exec
+DELETE FROM users
+WHERE email = $1
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, email pgtype.Text) error {
+	_, err := q.db.Exec(ctx, deleteUser, email)
+	return err
+}

@@ -4,3 +4,7 @@ INSERT INTO users (
 ) VALUES (
   $1
 );
+
+-- name: DeleteUser :exec
+DELETE FROM users
+WHERE email = $1;
