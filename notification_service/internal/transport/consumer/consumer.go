@@ -10,7 +10,6 @@ import (
 type Consumer struct {
 	consumer     *kafka.Consumer
 	topics       []string
-	rateHandler  handler
 	emailHandler handler
 }
 
@@ -19,7 +18,6 @@ type handler interface {
 }
 
 func NewConsumer(
-	rateHandler handler,
 	emailHandler handler,
 ) *Consumer {
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
@@ -33,8 +31,7 @@ func NewConsumer(
 
 	return &Consumer{
 		consumer:     consumer,
-		topics:       []string{"emails", "rate"},
-		rateHandler:  rateHandler,
+		topics:       []string{"emails"},
 		emailHandler: emailHandler,
 	}
 }
@@ -88,9 +85,6 @@ func (c Consumer) chooseHandler(msg *kafka.Message) handler {
 	switch *msg.TopicPartition.Topic {
 	case "emails":
 		return c.emailHandler
-
-	case "rate":
-		return c.rateHandler
 	}
 
 	return nil

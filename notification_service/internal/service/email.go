@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo"
@@ -54,21 +53,14 @@ func (s *EmailService) SendEmails(ctx context.Context, rate float32) error {
 		return errors.New("no sended emails")
 	}
 
-	sendedCount := &atomic.Int32{}
 	wg := &sync.WaitGroup{}
 
 	for _, sendedEmail := range sendedEmails {
 		wg.Add(1)
 
-		go func(wg *sync.WaitGroup, sendedCount *atomic.Int32) {
+		go func(wg *sync.WaitGroup) {
 			defer wg.Done()
-			if time.Now().UTC().Sub(sendedEmail.UpdatedAt.Time) < time.Second*24 {
-				fmt.Printf("current time: %v, updated_at time: %v\n", time.Now().UTC(), sendedEmail.UpdatedAt.Time)
-				fmt.Println("nothing to send time elapsed: ", time.Since(sendedEmail.UpdatedAt.Time))
-				return
-			}
 
-			fmt.Printf("sended email to: %v\n", sendedEmail.Email.String)
 			// err := s.SendEmail(sendedEmail.Email.String, fmt.Sprintf("%s %f", sender.DEFAULT_EMAIL_MESSAGE, rate))
 			// if err != nil {
 			// 	fmt.Printf("can't send email to %s: %v", sendedEmail.Email.String, err)
@@ -83,17 +75,10 @@ func (s *EmailService) SendEmails(ctx context.Context, rate float32) error {
 				fmt.Printf("can't update email %s: %v", sendedEmail.Email.String, err)
 				return
 			}
-
-			sendedCount.Add(1)
-			fmt.Println("current sendedCount", sendedCount.Load())
-		}(wg, sendedCount)
+		}(wg)
 	}
 
 	wg.Wait()
-
-	if sendedCount.Load() == 0 {
-		return errors.New("no emails were sended")
-	}
 
 	return nil
 }
