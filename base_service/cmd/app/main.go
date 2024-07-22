@@ -9,16 +9,15 @@ import (
 	"syscall"
 
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/db"
+	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/producer"
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/server"
 	"github.com/joho/godotenv"
 
 	emailRepo "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/email/repo"
-	emailEventProducer "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/email/repo/producer"
 	emailService "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/email/service"
 	emailTranport "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/email/transport"
 
 	rateRepoChain "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/rate/repo/chain"
-	rateEventProducer "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/rate/repo/producer"
 	rateRepoProvider "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/rate/repo/provider"
 	rateService "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/rate/service"
 	rateTransport "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/rate/transport"
@@ -30,10 +29,10 @@ func main() {
 	conn := db.Connect()
 	emailDBRepo := emailRepo.New(conn)
 
-	emailEventProducer := emailEventProducer.NewRateProducer()
-	emailEventProducer.RegisterTopics()
+	kafkaProducer := producer.NewProducer()
+	kafkaProducer.RegisterTopics()
 
-	emailService := emailService.NewEmailService(emailDBRepo, emailEventProducer)
+	emailService := emailService.NewEmailService(emailDBRepo, kafkaProducer)
 	emailHanlder := emailTranport.NewEmailHandler(emailService)
 
 	monobankProvider := rateRepoProvider.NewMonobankProvider(http.DefaultClient)
@@ -47,10 +46,7 @@ func main() {
 	baseMonobankChain.SetNext(baseBeaconChain)
 	baseBeaconChain.SetNext(basePrivatChain)
 
-	rateEventProducer := rateEventProducer.NewRateProducer()
-	rateEventProducer.RegisterTopics()
-
-	rateConverterService := rateService.NewRateSevice(baseMonobankChain, rateEventProducer)
+	rateConverterService := rateService.NewRateSevice(baseMonobankChain, kafkaProducer)
 	rateHandler := rateTransport.NewRateHandler(rateConverterService)
 
 	httpServer := server.NewServer(rateHandler, emailHanlder)
