@@ -23,7 +23,7 @@ func NewEmailService(emailRepo emailRepo, emailEventProducer emailEventProducer)
 }
 
 type emailEventProducer interface {
-	ProduceEmailEvent(email string) error
+	ProduceSubscribedEvent(email string) error
 }
 
 type emailRepo interface {
@@ -50,7 +50,7 @@ func (s *EmailService) AddEmail(ctx context.Context, email string) error {
 		return pkg.ErrDBInternal
 	}
 
-	err = s.emailEventProducer.ProduceEmailEvent(email)
+	err = s.emailEventProducer.ProduceSubscribedEvent(email)
 	if err != nil {
 		fmt.Printf("can't produce email event: %v", err)
 	}
