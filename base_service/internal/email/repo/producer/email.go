@@ -3,6 +3,7 @@ package producer
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
@@ -14,7 +15,7 @@ type EmailProducer struct {
 
 func NewRateProducer() *EmailProducer {
 	p, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092",
+		"bootstrap.servers": "localhost:9094",
 	})
 	if err != nil {
 		panic(err)
@@ -28,9 +29,10 @@ func NewRateProducer() *EmailProducer {
 
 func (p *EmailProducer) RegisterTopics() error {
 	adminClient, err := kafka.NewAdminClient(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092",
+		"bootstrap.servers": "localhost:9094",
 	})
 	if err != nil {
+		fmt.Println("can't create admin client")
 		panic(err)
 	}
 
@@ -42,6 +44,8 @@ func (p *EmailProducer) RegisterTopics() error {
 		},
 	})
 	if err != nil {
+		fmt.Println("can't register topics")
+
 		return err
 	}
 

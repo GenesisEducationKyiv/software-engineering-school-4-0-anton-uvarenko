@@ -23,7 +23,7 @@ type emailService interface {
 
 func NewEmailConsumer(emaemailService emailService) *EmailConsumer {
 	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092",
+		"bootstrap.servers": "localhost:9094",
 		"group.id":          "emails",
 		"auto.offset.reset": "earliest",
 	})
@@ -39,7 +39,7 @@ func NewEmailConsumer(emaemailService emailService) *EmailConsumer {
 
 func (h EmailConsumer) InitializeTopics() {
 	adminClient, err := kafka.NewAdminClient(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092",
+		"bootstrap.servers": "localhost:9094",
 	})
 	if err != nil {
 		panic(err)

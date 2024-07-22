@@ -3,6 +3,7 @@ package producer
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
@@ -15,7 +16,7 @@ type RateProducer struct {
 
 func NewRateProducer() *RateProducer {
 	p, err := kafka.NewProducer(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092",
+		"bootstrap.servers": "localhost:9094",
 	})
 	if err != nil {
 		panic(err)
@@ -29,8 +30,9 @@ func NewRateProducer() *RateProducer {
 
 func (p *RateProducer) RegisterTopics() error {
 	adminClient, err := kafka.NewAdminClient(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092",
+		"bootstrap.servers": "localhost:9094",
 	})
+	fmt.Println("registered topics")
 	if err != nil {
 		panic(err)
 	}

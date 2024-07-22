@@ -31,7 +31,7 @@ func main() {
 	emailDBRepo := emailRepo.New(conn)
 
 	emailEventProducer := emailEventProducer.NewRateProducer()
-	log.Fatal(emailEventProducer.RegisterTopics())
+	emailEventProducer.RegisterTopics()
 
 	emailService := emailService.NewEmailService(emailDBRepo, emailEventProducer)
 	emailHanlder := emailTranport.NewEmailHandler(emailService)
@@ -48,7 +48,7 @@ func main() {
 	baseBeaconChain.SetNext(basePrivatChain)
 
 	rateEventProducer := rateEventProducer.NewRateProducer()
-	log.Fatal(rateEventProducer.RegisterTopics())
+	rateEventProducer.RegisterTopics()
 
 	rateConverterService := rateService.NewRateSevice(baseMonobankChain, rateEventProducer)
 	rateHandler := rateTransport.NewRateHandler(rateConverterService)

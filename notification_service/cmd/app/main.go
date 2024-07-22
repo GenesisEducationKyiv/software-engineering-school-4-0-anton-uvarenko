@@ -10,9 +10,12 @@ import (
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo/sender"
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/service"
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/transport"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	godotenv.Load()
+
 	connection := db.Connect()
 	emailRepo := repo.New(connection)
 
