@@ -22,7 +22,7 @@ func NewProducer() *Producer {
 
 	return &Producer{
 		producer: p,
-		topics:   []string{"emails", "rate"},
+		topics:   []string{"emails"},
 	}
 }
 

@@ -46,7 +46,7 @@ func main() {
 	baseMonobankChain.SetNext(baseBeaconChain)
 	baseBeaconChain.SetNext(basePrivatChain)
 
-	rateConverterService := rateService.NewRateSevice(baseMonobankChain, kafkaProducer)
+	rateConverterService := rateService.NewRateSevice(baseMonobankChain)
 	rateHandler := rateTransport.NewRateHandler(rateConverterService)
 
 	httpServer := server.NewServer(rateHandler, emailHanlder)
