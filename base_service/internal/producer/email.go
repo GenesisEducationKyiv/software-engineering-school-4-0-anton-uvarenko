@@ -10,7 +10,7 @@ type emailEventPayload struct {
 	Email string `json:"email"`
 }
 
-var emailTopicName = "email"
+var emailTopicName = "emails"
 
 func (p *Producer) ProduceEmailEvent(email string) error {
 	payload, err := json.Marshal(emailEventPayload{
