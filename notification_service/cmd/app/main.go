@@ -10,6 +10,7 @@ import (
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo/sender"
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/service"
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/transport"
+	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/transport/consumer"
 	"github.com/joho/godotenv"
 )
 
@@ -23,9 +24,13 @@ func main() {
 
 	emailService := service.NewEmailService(emailRepo, emailSender)
 
-	emailConsumer := transport.NewEmailConsumer(emailService)
-	emailConsumer.InitializeTopics()
-	go emailConsumer.Consume()
+	emailHandler := transport.NewEmailHandler(emailService)
+
+	rateHandler := transport.NewRateHandler(emailService)
+
+	kafkaConsumer := consumer.NewConsumer(rateHandler, emailHandler)
+	kafkaConsumer.InitializeTopics()
+	go kafkaConsumer.StartPolling()
 
 	finish := make(chan os.Signal, 1)
 	signal.Notify(finish, os.Interrupt, syscall.SIGTERM)
