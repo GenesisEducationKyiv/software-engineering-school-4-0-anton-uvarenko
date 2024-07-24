@@ -14,7 +14,7 @@ type Consumer struct {
 }
 
 type handler interface {
-	Handle(msg []byte) error
+	Handle(msg *kafka.Message) error
 }
 
 func NewConsumer(
@@ -70,7 +70,7 @@ func (c Consumer) StartPolling() {
 		go func(handler handler, msg *kafka.Message) {
 			fmt.Println("handling msg")
 
-			err := handler.Handle(msg.Value)
+			err := handler.Handle(msg)
 			if err != nil {
 				return
 			}

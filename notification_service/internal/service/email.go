@@ -19,6 +19,7 @@ type EmailService struct {
 type emailRepo interface {
 	AddEmail(ctx context.Context, arg repo.AddEmailParams) error
 	GetAll(ctx context.Context) ([]repo.SendedEmail, error)
+	DeleteEmail(ctx context.Context, email pgtype.Text) error
 	UpdateEmail(ctx context.Context, arg repo.UpdateEmailParams) error
 }
 
@@ -40,6 +41,10 @@ func (s *EmailService) SaveEmail(ctx context.Context, arg repo.AddEmailParams) e
 	}
 
 	return nil
+}
+
+func (s *EmailService) DeleteEmail(ctx context.Context, email string) error {
+	return s.emailRepo.DeleteEmail(ctx, pgtype.Text{String: email, Valid: true})
 }
 
 func (s *EmailService) SendEmails(ctx context.Context, rate float32) error {

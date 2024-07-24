@@ -14,6 +14,10 @@ SET
 WHERE
   email = $1;
 
+-- name: DeleteEmail :exec
+DELETE FROM sended_emails
+WHERE email = $1;
+
 -- name: GetAll :many
 SELECT * FROM sended_emails;
 

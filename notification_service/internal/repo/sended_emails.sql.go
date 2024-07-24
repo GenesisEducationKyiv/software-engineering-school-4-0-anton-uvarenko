@@ -31,6 +31,16 @@ func (q *Queries) AddEmail(ctx context.Context, arg AddEmailParams) error {
 	return err
 }
 
+const deleteEmail = `-- name: DeleteEmail :exec
+DELETE FROM sended_emails
+WHERE email = $1
+`
+
+func (q *Queries) DeleteEmail(ctx context.Context, email pgtype.Text) error {
+	_, err := q.db.Exec(ctx, deleteEmail, email)
+	return err
+}
+
 const getAll = `-- name: GetAll :many
 SELECT email, updated_at FROM sended_emails
 `
