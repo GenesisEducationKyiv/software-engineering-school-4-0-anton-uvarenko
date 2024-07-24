@@ -44,11 +44,9 @@ func (h EmailHandler) Handle(msg *kafka.Message) error {
 	var err error
 	switch string(msg.Headers[originHeaderIndex].Value) {
 	case "user_unsubscribed":
-		h.handleUnsubscribeEvent(msg.Value)
-		break
+		err = h.handleUnsubscribeEvent(msg.Value)
 	case "user_subscribed":
-		h.handleSubscribeEvent(msg.Value)
-		break
+		err = h.handleSubscribeEvent(msg.Value)
 	default:
 		err = errors.New("unsuported origin")
 	}
@@ -57,7 +55,8 @@ func (h EmailHandler) Handle(msg *kafka.Message) error {
 }
 
 func (h EmailHandler) handleSubscribeEvent(msg []byte) error {
-	ctx, _ := context.WithTimeout(context.Background(), time.Minute*2)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
+	defer cancel()
 
 	payload := emailSubscribePayload{}
 
@@ -86,7 +85,8 @@ type emailUnsubscribePayload struct {
 }
 
 func (h EmailHandler) handleUnsubscribeEvent(msg []byte) error {
-	ctx, _ := context.WithTimeout(context.Background(), time.Minute*2)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
+	defer cancel()
 
 	payload := emailUnsubscribePayload{}
 

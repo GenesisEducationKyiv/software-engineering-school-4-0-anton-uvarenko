@@ -3,7 +3,7 @@ package service
 import (
 	"fmt"
 
-	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/pkg"
+	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/pkg"
 )
 
 type RateService struct {
@@ -14,7 +14,7 @@ type rateConverter interface {
 	GetUAHToUSD() (float32, error)
 }
 
-func NewRateSevice(converter rateConverter) *RateService {
+func NewRateservice(converter rateConverter) *RateService {
 	return &RateService{
 		converter: converter,
 	}

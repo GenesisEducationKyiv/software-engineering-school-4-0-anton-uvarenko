@@ -19,7 +19,10 @@ import (
 )
 
 func main() {
-	godotenv.Load()
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
 
 	connection := db.Connect()
 	emailRepo := repo.New(connection)
@@ -39,7 +42,11 @@ func main() {
 		panic(err)
 	}
 	rateJob := jobs.NewRateJob(scheduler, emailService)
-	rateJob.RegisterJob()
+	err = rateJob.RegisterJob()
+	if err != nil {
+		fmt.Printf("can't register job: %v", err)
+		panic(err)
+	}
 	scheduler.Start()
 
 	finish := make(chan os.Signal, 1)

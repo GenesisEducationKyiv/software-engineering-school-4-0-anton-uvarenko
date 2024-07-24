@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/pkg"
+	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/pkg"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -31,10 +31,6 @@ type emailEventProducer interface {
 type emailRepo interface {
 	AddUser(ctx context.Context, email pgtype.Text) error
 	DeleteUser(ctx context.Context, email pgtype.Text) error
-}
-
-type rateConverter interface {
-	GetUAHToUSD() (float32, error)
 }
 
 // TODO: add transactional outbox

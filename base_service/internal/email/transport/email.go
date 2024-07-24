@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice/internal/pkg"
+	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/pkg"
 	"github.com/gin-gonic/gin"
 )
 

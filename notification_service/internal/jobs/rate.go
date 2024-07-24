@@ -26,11 +26,13 @@ func NewRateJob(scheduler gocron.Scheduler, emailService emailService) *RateJob 
 	}
 }
 
-func (j *RateJob) RegisterJob() {
-	j.scheduler.NewJob(
+func (j *RateJob) RegisterJob() error {
+	_, err := j.scheduler.NewJob(
 		gocron.CronJob("", false),
 		gocron.NewTask(j.startNorificationFlow),
 	)
+
+	return err
 }
 
 type rateResponse struct {
@@ -52,7 +54,8 @@ func (j *RateJob) startNorificationFlow() {
 		return
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), time.Minute*10)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
+	defer cancel()
 
 	err = j.emailService.SendEmails(ctx, rate.Rate)
 	if err != nil {

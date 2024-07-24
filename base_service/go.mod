@@ -1,4 +1,4 @@
-module github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_sevice
+module github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service
 
 go 1.22.2
 

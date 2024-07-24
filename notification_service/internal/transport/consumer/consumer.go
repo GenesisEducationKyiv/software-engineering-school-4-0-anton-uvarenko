@@ -56,7 +56,11 @@ func (c Consumer) InitializeTopics() {
 
 func (c Consumer) StartPolling() {
 	fmt.Println("start consuming messages")
-	c.consumer.SubscribeTopics(c.topics, nil)
+	err := c.consumer.SubscribeTopics(c.topics, nil)
+	if err != nil {
+		fmt.Printf("can't SubscribeTopics: %v", err)
+		return
+	}
 
 	for {
 		msg, err := c.consumer.ReadMessage(-1)
@@ -75,15 +79,17 @@ func (c Consumer) StartPolling() {
 				return
 			}
 
-			c.consumer.CommitMessage(msg)
+			_, err = c.consumer.CommitMessage(msg)
+			if err != nil {
+				fmt.Printf("can't commit message: %v", err)
+			}
 		}(chosenHandler, msg)
 
 	}
 }
 
 func (c Consumer) chooseHandler(msg *kafka.Message) handler {
-	switch *msg.TopicPartition.Topic {
-	case "emails":
+	if *msg.TopicPartition.Topic == "emails" {
 		return c.emailHandler
 	}
 

@@ -67,7 +67,7 @@ func (s *EmailService) SendEmails(ctx context.Context, rate float32) error {
 		go func(wg *sync.WaitGroup) {
 			defer wg.Done()
 
-			err := s.SendEmail(sendedEmail.Email.String, fmt.Sprintf("%s %f", sender.DEFAULT_EMAIL_MESSAGE, rate))
+			err := s.SendEmail(sendedEmail.Email.String, fmt.Sprintf("%s %f", sender.DefaultEmailMessage, rate))
 			if err != nil {
 				fmt.Printf("can't send email to %s: %v", sendedEmail.Email.String, err)
 				return
