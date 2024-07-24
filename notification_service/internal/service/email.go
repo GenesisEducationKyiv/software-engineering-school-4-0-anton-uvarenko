@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo"
+	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo/sender"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -66,11 +67,11 @@ func (s *EmailService) SendEmails(ctx context.Context, rate float32) error {
 		go func(wg *sync.WaitGroup) {
 			defer wg.Done()
 
-			// err := s.SendEmail(sendedEmail.Email.String, fmt.Sprintf("%s %f", sender.DEFAULT_EMAIL_MESSAGE, rate))
-			// if err != nil {
-			// 	fmt.Printf("can't send email to %s: %v", sendedEmail.Email.String, err)
-			// 	return
-			// }
+			err := s.SendEmail(sendedEmail.Email.String, fmt.Sprintf("%s %f", sender.DEFAULT_EMAIL_MESSAGE, rate))
+			if err != nil {
+				fmt.Printf("can't send email to %s: %v", sendedEmail.Email.String, err)
+				return
+			}
 
 			err = s.emailRepo.UpdateEmail(ctx, repo.UpdateEmailParams{
 				Email:     pgtype.Text{String: sendedEmail.Email.String, Valid: true},
