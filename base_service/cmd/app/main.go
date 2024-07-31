@@ -47,7 +47,7 @@ func main() {
 		panic(err)
 	}
 
-	emailService := emailService.NewEmailService(emailDBRepo, kafkaProducer)
+	emailService := emailService.NewEmailService(emailDBRepo, kafkaProducer, logger)
 	emailHanlder := emailTranport.NewEmailHandler(emailService)
 
 	monobankProvider := rateRepoProvider.NewMonobankProvider(http.DefaultClient)
