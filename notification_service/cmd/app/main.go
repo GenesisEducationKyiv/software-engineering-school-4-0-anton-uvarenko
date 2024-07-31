@@ -16,6 +16,7 @@ import (
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/transport/consumer"
 	"github.com/go-co-op/gocron/v2"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -27,7 +28,12 @@ func main() {
 	connection := db.Connect()
 	emailRepo := repo.New(connection)
 
-	emailSender := sender.NewEmailSender(os.Getenv("FROM_EMAIL"), os.Getenv("FROM_EMAIL_PASSWORD"))
+	logger, err := zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+
+	emailSender := sender.NewEmailSender(os.Getenv("FROM_EMAIL"), os.Getenv("FROM_EMAIL_PASSWORD"), logger)
 
 	emailService := service.NewEmailService(emailRepo, emailSender)
 
