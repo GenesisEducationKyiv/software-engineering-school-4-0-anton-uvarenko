@@ -47,7 +47,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	rateJob := jobs.NewRateJob(scheduler, emailService)
+	rateJob := jobs.NewRateJob(scheduler, emailService, logger)
 	err = rateJob.RegisterJob()
 	if err != nil {
 		fmt.Printf("can't register job: %v", err)
