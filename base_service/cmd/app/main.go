@@ -50,9 +50,9 @@ func main() {
 	emailService := emailService.NewEmailService(emailDBRepo, kafkaProducer, logger)
 	emailHanlder := emailTranport.NewEmailHandler(emailService, logger)
 
-	monobankProvider := rateRepoProvider.NewMonobankProvider(http.DefaultClient)
-	beaconProvider := rateRepoProvider.NewBeaconProvider(http.DefaultClient, os.Getenv("BEACONAPIKEY"))
-	privatProvider := rateRepoProvider.NewPrivatBankProvider(http.DefaultClient)
+	monobankProvider := rateRepoProvider.NewMonobankProvider(http.DefaultClient, logger)
+	beaconProvider := rateRepoProvider.NewBeaconProvider(http.DefaultClient, os.Getenv("BEACONAPIKEY"), logger)
+	privatProvider := rateRepoProvider.NewPrivatBankProvider(http.DefaultClient, logger)
 
 	baseMonobankChain := rateRepoChain.NewBaseChain(monobankProvider)
 	baseBeaconChain := rateRepoChain.NewBaseChain(beaconProvider)
