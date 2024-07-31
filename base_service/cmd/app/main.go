@@ -13,6 +13,7 @@ import (
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/producer"
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/server"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 
 	emailRepo "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/email/repo"
 	emailService "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/email/service"
@@ -34,7 +35,12 @@ func main() {
 	conn := db.Connect()
 	emailDBRepo := emailRepo.New(conn)
 
-	kafkaProducer := producer.NewProducer()
+	logger, err := zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+
+	kafkaProducer := producer.NewProducer(logger)
 	err = kafkaProducer.RegisterTopics()
 	if err != nil {
 		fmt.Printf("can't register topics: %v", err)
