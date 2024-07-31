@@ -61,7 +61,7 @@ func main() {
 	baseMonobankChain.SetNext(baseBeaconChain)
 	baseBeaconChain.SetNext(basePrivatChain)
 
-	rateConverterService := rateService.NewRateservice(baseMonobankChain)
+	rateConverterService := rateService.NewRateservice(baseMonobankChain, logger)
 	rateHandler := rateTransport.NewRateHandler(rateConverterService)
 
 	httpServer := server.NewServer(rateHandler, emailHanlder)
