@@ -39,7 +39,7 @@ func main() {
 
 	emailHandler := transport.NewEmailHandler(emailService)
 
-	kafkaConsumer := consumer.NewConsumer(emailHandler)
+	kafkaConsumer := consumer.NewConsumer(emailHandler, logger)
 	kafkaConsumer.InitializeTopics()
 	go kafkaConsumer.StartPolling()
 
