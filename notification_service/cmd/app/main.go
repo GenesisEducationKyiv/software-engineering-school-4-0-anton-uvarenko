@@ -35,7 +35,7 @@ func main() {
 
 	emailSender := sender.NewEmailSender(os.Getenv("FROM_EMAIL"), os.Getenv("FROM_EMAIL_PASSWORD"), logger)
 
-	emailService := service.NewEmailService(emailRepo, emailSender)
+	emailService := service.NewEmailService(emailRepo, emailSender, logger)
 
 	emailHandler := transport.NewEmailHandler(emailService)
 

@@ -10,11 +10,13 @@ import (
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo"
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo/sender"
 	"github.com/jackc/pgx/v5/pgtype"
+	"go.uber.org/zap"
 )
 
 type EmailService struct {
 	emailRepo   emailRepo
 	emailSender emailSender
+	logger      *zap.Logger
 }
 
 type emailRepo interface {
@@ -28,16 +30,20 @@ type emailSender interface {
 	SendEmail(to string, message string) error
 }
 
-func NewEmailService(emailRepo emailRepo, emailSender emailSender) *EmailService {
+func NewEmailService(emailRepo emailRepo, emailSender emailSender, logger *zap.Logger) *EmailService {
 	return &EmailService{
 		emailRepo:   emailRepo,
 		emailSender: emailSender,
+		logger:      logger.With(zap.String("service", "EmailService")),
 	}
 }
 
 func (s *EmailService) SaveEmail(ctx context.Context, arg repo.AddEmailParams) error {
+	logger := s.logger.With(zap.String("method", "SaveEmail"))
+
 	err := s.emailRepo.AddEmail(ctx, arg)
 	if err != nil {
+		logger.Error("can't add email to db", zap.Error(err))
 		return err
 	}
 
@@ -45,17 +51,27 @@ func (s *EmailService) SaveEmail(ctx context.Context, arg repo.AddEmailParams) e
 }
 
 func (s *EmailService) DeleteEmail(ctx context.Context, email string) error {
-	return s.emailRepo.DeleteEmail(ctx, pgtype.Text{String: email, Valid: true})
+	logger := s.logger.With(zap.String("method", "DeleteEmail"))
+
+	err := s.emailRepo.DeleteEmail(ctx, pgtype.Text{String: email, Valid: true})
+	if err != nil {
+		logger.Error("can't delete email from db", zap.Error(err))
+		return err
+	}
+	return nil
 }
 
 func (s *EmailService) SendEmails(ctx context.Context, rate float32) error {
+	logger := s.logger.With(zap.String("method", "SendEmails"))
+
 	sendedEmails, err := s.emailRepo.GetAll(ctx)
 	if err != nil {
+		logger.Error("can't retrieve emails", zap.Error(err))
 		return err
 	}
 
-	fmt.Println("length of senede emails ", len(sendedEmails))
 	if len(sendedEmails) == 0 {
+		logger.Warn("sened emails is empty")
 		return errors.New("no sended emails")
 	}
 
@@ -69,7 +85,8 @@ func (s *EmailService) SendEmails(ctx context.Context, rate float32) error {
 
 			err := s.SendEmail(sendedEmail.Email.String, fmt.Sprintf("%s %f", sender.DefaultEmailMessage, rate))
 			if err != nil {
-				fmt.Printf("can't send email to %s: %v", sendedEmail.Email.String, err)
+				// log email cause don't have id
+				logger.Error("can't send email", zap.String("id", sendedEmail.Email.String), zap.Error(err))
 				return
 			}
 
@@ -78,7 +95,7 @@ func (s *EmailService) SendEmails(ctx context.Context, rate float32) error {
 				UpdatedAt: pgtype.Timestamp{Time: time.Now().UTC(), Valid: true},
 			})
 			if err != nil {
-				fmt.Printf("can't update email %s: %v", sendedEmail.Email.String, err)
+				logger.Error("can't update sended email", zap.String("id", sendedEmail.Email.String), zap.Error(err))
 				return
 			}
 		}(wg)
@@ -90,8 +107,11 @@ func (s *EmailService) SendEmails(ctx context.Context, rate float32) error {
 }
 
 func (s *EmailService) SendEmail(to string, message string) error {
+	logger := s.logger.With(zap.String("method", "SendEmail"))
+
 	err := s.emailSender.SendEmail(to, message)
 	if err != nil {
+		logger.Error("can't send email", zap.Error(err))
 		return err
 	}
 
