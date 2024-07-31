@@ -1,12 +1,49 @@
 services:
-  app:
-    build: .
-    env_file: ".env.prod"
+  zookeeper:
+    image: bitnami/zookeeper:latest
+    environment:
+      - ZOO_ENABLE_AUTH=no
+      - ZOO_SERVER_ID=1
+      - ZOO_SERVERS=0.0.0.0:2888:3888
+      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ZOO_PORT_NUMBER=2181
+      - ZOO_TICK_TIME=2000
     ports:
-      - "8080:8080"
+      - "2181:2181"
+
+  kafka:
+    image: bitnami/kafka:latest
     depends_on:
-      db:
-        condition: service_healthy
+      - zookeeper
+    environment:
+      - KAFKA_BROKER_ID=0
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:9094
+      - KAFKA_ADVERTISED_LISTENERS=INTERNAL://kafka:9092,EXTERNAL://localhost:9094
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=INTERNAL
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - ALLOW_PLAINTEXT_LISTENER=yes
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+
+
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8081:8080"
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+      - KAFKA_CLUSTERS_0_SECURITYPROTOCOL=PLAINTEXT
+    depends_on:
+      - kafka
+  # notification_service:
+  #   build: ./notification_service/
+
   db:
     image: "postgres"
     environment:
@@ -19,3 +56,4 @@ services:
       timeout: 60s
       retries: 5
       start_period: 80s  
+

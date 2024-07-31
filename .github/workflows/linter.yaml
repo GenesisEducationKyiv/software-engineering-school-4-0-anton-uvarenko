@@ -11,8 +11,8 @@ permissions:
   contents: read
 
 jobs:
-  golangci:
-    name: lint
+  golangci_base_service:
+    name: base_service-lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,4 +22,20 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
+          working-directory: notification_service
           version: v1.58
+
+  golangci_notification_service:
+    name: notification_service-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          working-directory: notification_service
+          version: v1.58
+
