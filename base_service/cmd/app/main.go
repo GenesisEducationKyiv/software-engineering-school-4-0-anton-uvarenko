@@ -54,9 +54,9 @@ func main() {
 	beaconProvider := rateRepoProvider.NewBeaconProvider(http.DefaultClient, os.Getenv("BEACONAPIKEY"), logger)
 	privatProvider := rateRepoProvider.NewPrivatBankProvider(http.DefaultClient, logger)
 
-	baseMonobankChain := rateRepoChain.NewBaseChain(monobankProvider)
-	baseBeaconChain := rateRepoChain.NewBaseChain(beaconProvider)
-	basePrivatChain := rateRepoChain.NewBaseChain(privatProvider)
+	baseMonobankChain := rateRepoChain.NewBaseChain(monobankProvider, logger)
+	baseBeaconChain := rateRepoChain.NewBaseChain(beaconProvider, logger)
+	basePrivatChain := rateRepoChain.NewBaseChain(privatProvider, logger)
 
 	baseMonobankChain.SetNext(baseBeaconChain)
 	baseBeaconChain.SetNext(basePrivatChain)

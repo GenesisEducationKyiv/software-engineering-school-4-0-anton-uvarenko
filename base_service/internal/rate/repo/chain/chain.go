@@ -1,10 +1,9 @@
 package chain
 
 import (
-	"fmt"
-
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/pkg"
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/rate/repo/provider"
+	"go.uber.org/zap"
 )
 
 type ProvidersChain interface {
@@ -15,11 +14,13 @@ type ProvidersChain interface {
 type BaseChain struct {
 	provider provider.CurrencyProvider
 	next     ProvidersChain
+	logger   *zap.Logger
 }
 
-func NewBaseChain(provider provider.CurrencyProvider) *BaseChain {
+func NewBaseChain(provider provider.CurrencyProvider, logger *zap.Logger) *BaseChain {
 	return &BaseChain{
 		provider: provider,
+		logger:   logger.With(zap.String("service", "BaseChain")),
 	}
 }
 
@@ -30,7 +31,7 @@ func (c *BaseChain) SetNext(next ProvidersChain) {
 func (c *BaseChain) GetUAHToUSD() (float32, error) {
 	rate, err := c.provider.GetUAHToUSD()
 	if err == nil {
-		fmt.Printf("error receiving rate: %v\n", err)
+		c.logger.Error("error receiving rate", zap.Error(err))
 		return rate, nil
 	}
 
