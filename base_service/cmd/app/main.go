@@ -48,7 +48,7 @@ func main() {
 	}
 
 	emailService := emailService.NewEmailService(emailDBRepo, kafkaProducer, logger)
-	emailHanlder := emailTranport.NewEmailHandler(emailService)
+	emailHanlder := emailTranport.NewEmailHandler(emailService, logger)
 
 	monobankProvider := rateRepoProvider.NewMonobankProvider(http.DefaultClient)
 	beaconProvider := rateRepoProvider.NewBeaconProvider(http.DefaultClient, os.Getenv("BEACONAPIKEY"))
