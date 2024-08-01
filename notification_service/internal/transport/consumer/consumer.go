@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/VictoriaMetrics/metrics"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"go.uber.org/zap"
 )
+
+var eventsTotal = metrics.NewCounter("events_total")
 
 type Consumer struct {
 	consumer     *kafka.Consumer
@@ -76,6 +79,8 @@ func (c Consumer) StartPolling() {
 			logger.Error("can't read message", zap.Error(err))
 			continue
 		}
+
+		eventsTotal.Inc()
 
 		fmt.Printf("consumed  message: %v", string(msg.Value))
 		logger.Info("consumed  message", zap.Any("message", msg))
