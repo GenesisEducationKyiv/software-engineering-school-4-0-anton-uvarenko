@@ -3,9 +3,12 @@ package producer
 import (
 	"context"
 
+	"github.com/VictoriaMetrics/metrics"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"go.uber.org/zap"
 )
+
+var producedEvenetsTotal = metrics.NewCounter("produced_events_total")
 
 type Producer struct {
 	producer *kafka.Producer
@@ -26,6 +29,12 @@ func NewProducer(logger *zap.Logger) *Producer {
 		topics:   []string{"emails"},
 		logger:   logger.With(zap.String("service", "Producer")),
 	}
+}
+
+func (p *Producer) Produce(msg *kafka.Message) error {
+	producedEvenetsTotal.Inc()
+
+	return p.producer.Produce(msg, nil)
 }
 
 func (p *Producer) RegisterTopics() error {

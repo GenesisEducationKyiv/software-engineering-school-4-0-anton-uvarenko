@@ -9,7 +9,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var eventsTotal = metrics.NewCounter("events_total")
+var consumedEventsTotal = metrics.NewCounter("consumed_events_total")
 
 type Consumer struct {
 	consumer     *kafka.Consumer
@@ -80,9 +80,8 @@ func (c Consumer) StartPolling() {
 			continue
 		}
 
-		eventsTotal.Inc()
+		consumedEventsTotal.Inc()
 
-		fmt.Printf("consumed  message: %v", string(msg.Value))
 		logger.Info("consumed  message", zap.Any("message", msg))
 		chosenHandler := c.chooseHandler(msg)
 		go func(handler handler, msg *kafka.Message, logger *zap.Logger) {

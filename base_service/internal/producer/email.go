@@ -6,6 +6,8 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
+// var produce
+
 var emailTopicName = "emails"
 
 type subscribedEventPayload struct {
@@ -20,7 +22,7 @@ func (p *Producer) ProduceSubscribedEvent(email string) error {
 		return err
 	}
 
-	err = p.producer.Produce(&kafka.Message{
+	err = p.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{
 			Topic:     &emailTopicName,
 			Partition: kafka.PartitionAny,
@@ -32,7 +34,7 @@ func (p *Producer) ProduceSubscribedEvent(email string) error {
 				Value: []byte("user_subscribed"),
 			},
 		},
-	}, nil)
+	})
 	if err != nil {
 		return err
 	}
@@ -52,7 +54,7 @@ func (p *Producer) ProduceUnsubscribedEvent(email string) error {
 		return err
 	}
 
-	err = p.producer.Produce(&kafka.Message{
+	err = p.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{
 			Topic:     &emailTopicName,
 			Partition: kafka.PartitionAny,
@@ -64,7 +66,7 @@ func (p *Producer) ProduceUnsubscribedEvent(email string) error {
 				Value: []byte("user_unsubscribed"),
 			},
 		},
-	}, nil)
+	})
 	if err != nil {
 		return err
 	}

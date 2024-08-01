@@ -1,9 +1,12 @@
 package sender
 
 import (
+	"github.com/VictoriaMetrics/metrics"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
 )
+
+var emailFailTotal = metrics.NewCounter("email_fail_total")
 
 const DefaultEmailMessage = "current rate is"
 
@@ -35,6 +38,7 @@ func (s EmailSender) SendEmail(to string, message string) error {
 	d := gomail.NewDialer("smtp.gmail.com", 587, s.from, s.password)
 	err := d.DialAndSend(m)
 	if err != nil {
+		emailFailTotal.Inc()
 		logger.Error("can't send email", zap.Error(err))
 		return err
 	}
