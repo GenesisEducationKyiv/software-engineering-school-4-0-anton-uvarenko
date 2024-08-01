@@ -16,36 +16,45 @@ import (
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/transport/consumer"
 	"github.com/go-co-op/gocron/v2"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 )
 
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		panic(err)
+		fmt.Printf("can't load env: %v", err)
+		return
 	}
 
 	connection := db.Connect()
 	emailRepo := repo.New(connection)
 
-	emailSender := sender.NewEmailSender(os.Getenv("FROM_EMAIL"), os.Getenv("FROM_EMAIL_PASSWORD"))
+	logger, err := zap.NewProduction()
+	if err != nil {
+		fmt.Printf("can't create zap logger: %v", err)
+		return
+	}
 
-	emailService := service.NewEmailService(emailRepo, emailSender)
+	emailSender := sender.NewEmailSender(os.Getenv("FROM_EMAIL"), os.Getenv("FROM_EMAIL_PASSWORD"), logger)
+
+	emailService := service.NewEmailService(emailRepo, emailSender, logger)
 
 	emailHandler := transport.NewEmailHandler(emailService)
 
-	kafkaConsumer := consumer.NewConsumer(emailHandler)
+	kafkaConsumer := consumer.NewConsumer(emailHandler, logger)
 	kafkaConsumer.InitializeTopics()
 	go kafkaConsumer.StartPolling()
 
 	scheduler, err := gocron.NewScheduler()
 	if err != nil {
-		panic(err)
+		logger.Error("can't initialize job scheduler", zap.Error(err))
+		return
 	}
-	rateJob := jobs.NewRateJob(scheduler, emailService)
+	rateJob := jobs.NewRateJob(scheduler, emailService, logger)
 	err = rateJob.RegisterJob()
 	if err != nil {
-		fmt.Printf("can't register job: %v", err)
-		panic(err)
+		logger.Error("can't register job", zap.Error(err))
+		return
 	}
 	scheduler.Start()
 
@@ -56,7 +65,7 @@ func main() {
 
 	err = scheduler.Shutdown()
 	if err != nil {
-		fmt.Printf("can't properly shutdown job scheduler: %v\n", err)
+		logger.Error("can't properly shutdown job scheduler", zap.Error(err))
 	}
 
 	err = connection.Close(context.Background())

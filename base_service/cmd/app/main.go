@@ -13,6 +13,7 @@ import (
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/producer"
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/server"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 
 	emailRepo "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/email/repo"
 	emailService "github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/email/service"
@@ -28,35 +29,41 @@ func main() {
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Printf("can't load env: %v", err)
-		panic(err)
+		return
 	}
 
 	conn := db.Connect()
 	emailDBRepo := emailRepo.New(conn)
 
-	kafkaProducer := producer.NewProducer()
-	err = kafkaProducer.RegisterTopics()
+	logger, err := zap.NewProduction()
 	if err != nil {
-		fmt.Printf("can't register topics: %v", err)
-		panic(err)
+		fmt.Printf("can't create zap logger: %v", err)
+		return
 	}
 
-	emailService := emailService.NewEmailService(emailDBRepo, kafkaProducer)
-	emailHanlder := emailTranport.NewEmailHandler(emailService)
+	kafkaProducer := producer.NewProducer(logger)
+	err = kafkaProducer.RegisterTopics()
+	if err != nil {
+		logger.Error("can't regiser topics", zap.Error(err))
+		return
+	}
 
-	monobankProvider := rateRepoProvider.NewMonobankProvider(http.DefaultClient)
-	beaconProvider := rateRepoProvider.NewBeaconProvider(http.DefaultClient, os.Getenv("BEACONAPIKEY"))
-	privatProvider := rateRepoProvider.NewPrivatBankProvider(http.DefaultClient)
+	emailService := emailService.NewEmailService(emailDBRepo, kafkaProducer, logger)
+	emailHanlder := emailTranport.NewEmailHandler(emailService, logger)
 
-	baseMonobankChain := rateRepoChain.NewBaseChain(monobankProvider)
-	baseBeaconChain := rateRepoChain.NewBaseChain(beaconProvider)
-	basePrivatChain := rateRepoChain.NewBaseChain(privatProvider)
+	monobankProvider := rateRepoProvider.NewMonobankProvider(http.DefaultClient, logger)
+	beaconProvider := rateRepoProvider.NewBeaconProvider(http.DefaultClient, os.Getenv("BEACONAPIKEY"), logger)
+	privatProvider := rateRepoProvider.NewPrivatBankProvider(http.DefaultClient, logger)
+
+	baseMonobankChain := rateRepoChain.NewBaseChain(monobankProvider, logger)
+	baseBeaconChain := rateRepoChain.NewBaseChain(beaconProvider, logger)
+	basePrivatChain := rateRepoChain.NewBaseChain(privatProvider, logger)
 
 	baseMonobankChain.SetNext(baseBeaconChain)
 	baseBeaconChain.SetNext(basePrivatChain)
 
-	rateConverterService := rateService.NewRateservice(baseMonobankChain)
-	rateHandler := rateTransport.NewRateHandler(rateConverterService)
+	rateConverterService := rateService.NewRateservice(baseMonobankChain, logger)
+	rateHandler := rateTransport.NewRateHandler(rateConverterService, logger)
 
 	httpServer := server.NewServer(rateHandler, emailHanlder)
 	go log.Fatal(httpServer.ListenAndServe())

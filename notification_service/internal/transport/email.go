@@ -9,8 +9,14 @@ import (
 	"time"
 
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/notification_service/internal/repo"
+	"github.com/VictoriaMetrics/metrics"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/jackc/pgx/v5/pgtype"
+)
+
+var (
+	subscribeTotal   = metrics.NewCounter("subscribe_total")
+	unsubscribeTotal = metrics.NewCounter("unsubscribe_total")
 )
 
 type EmailHandler struct {
@@ -55,6 +61,8 @@ func (h EmailHandler) Handle(msg *kafka.Message) error {
 }
 
 func (h EmailHandler) handleSubscribeEvent(msg []byte) error {
+	subscribeTotal.Inc()
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
 	defer cancel()
 
@@ -85,6 +93,8 @@ type emailUnsubscribePayload struct {
 }
 
 func (h EmailHandler) handleUnsubscribeEvent(msg []byte) error {
+	unsubscribeTotal.Inc()
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*2)
 	defer cancel()
 

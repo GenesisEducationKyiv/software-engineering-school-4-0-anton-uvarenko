@@ -25,6 +25,9 @@ func registerRoutes(
 	emailHandler *emailTransport.EmailHandler,
 ) *gin.Engine {
 	engine := gin.New()
+	engine.Use(gin.Logger())
+	engine.Use(gin.Recovery())
+
 	engine.POST("/subscribe", emailHandler.Subscribe)
 	engine.GET("/rate", rateHandler.Rate)
 

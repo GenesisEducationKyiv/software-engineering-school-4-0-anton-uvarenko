@@ -2,17 +2,21 @@ package producer
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/VictoriaMetrics/metrics"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"go.uber.org/zap"
 )
+
+var producedEvenetsTotal = metrics.NewCounter("produced_events_total")
 
 type Producer struct {
 	producer *kafka.Producer
 	topics   []string
+	logger   *zap.Logger
 }
 
-func NewProducer() *Producer {
+func NewProducer(logger *zap.Logger) *Producer {
 	p, err := kafka.NewProducer(&kafka.ConfigMap{
 		"bootstrap.servers": "localhost:9094",
 	})
@@ -23,7 +27,14 @@ func NewProducer() *Producer {
 	return &Producer{
 		producer: p,
 		topics:   []string{"emails"},
+		logger:   logger.With(zap.String("service", "Producer")),
 	}
+}
+
+func (p *Producer) Produce(msg *kafka.Message) error {
+	producedEvenetsTotal.Inc()
+
+	return p.producer.Produce(msg, nil)
 }
 
 func (p *Producer) RegisterTopics() error {
@@ -31,8 +42,8 @@ func (p *Producer) RegisterTopics() error {
 		"bootstrap.servers": "localhost:9094",
 	})
 	if err != nil {
-		fmt.Println("can't create admin client")
-		panic(err)
+		p.logger.Error("can't create admin client", zap.Error(err))
+		return err
 	}
 
 	topicSpecifications := []kafka.TopicSpecification{}
@@ -42,7 +53,7 @@ func (p *Producer) RegisterTopics() error {
 
 	_, err = adminClient.CreateTopics(context.Background(), topicSpecifications)
 	if err != nil {
-		fmt.Println("can't register topics")
+		p.logger.Error("can't register topics", zap.Error(err))
 
 		return err
 	}

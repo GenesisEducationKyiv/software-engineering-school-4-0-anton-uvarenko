@@ -3,18 +3,22 @@ package provider
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/GenesisEducationKyiv/software-engineering-school-4-0-anton-uvarenko/base_service/internal/pkg"
+	"go.uber.org/zap"
 )
 
 type PrivatBankProvider struct {
 	httpClient HTTPClient
+	logger     *zap.Logger
 }
 
-func NewPrivatBankProvider(client HTTPClient) *MonobankProvider {
+func NewPrivatBankProvider(client HTTPClient, logger *zap.Logger) *MonobankProvider {
 	return &MonobankProvider{
 		httpClient: client,
+		logger:     logger.With(zap.String("service", "PrivatBankProvider")),
 	}
 }
 
@@ -25,25 +29,42 @@ type privatBankResponse struct {
 }
 
 func (c *PrivatBankProvider) GetUAHToUSD() (float32, error) {
+	logger := c.logger.With(zap.String("method", "GetUAHToUSD"))
+
 	resp, err := c.httpClient.Get("https://api.privatbank.ua/p24api/pubinfo?exchange&coursid=5")
 	if err != nil {
+		logger.Error("can't perform request to api", zap.Error(err))
 		return 0, fmt.Errorf("%v: %v", pkg.ErrFailPerformRequest, err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			logger.Error("can't read body after bad status code", zap.Error(err))
+		}
+
+		logger.Warn(
+			"unexpected status code from api",
+			zap.Int("status code", resp.StatusCode),
+			zap.String("response", string(body)),
+		)
+
 		return 0, pkg.ErrUnexpectedStatusCode
 	}
 
 	var result []privatBankResponse
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
+		logger.Error("can't decode response", zap.Error(err))
 		return 0, fmt.Errorf("%v: %v", pkg.ErrFailDecodeResponse, err)
 	}
-	fmt.Printf("privatbank rates: %v", result)
 
+	logger.Info("rates", zap.Any("data", result))
 	currency, err := c.findUahToUsd(result)
 	if err != nil {
+		logger.Error("no expected currency found in response", zap.Error(err))
+
 		return 0, err
 	}
 

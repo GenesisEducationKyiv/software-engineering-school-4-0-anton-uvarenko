@@ -4,15 +4,18 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type RateHandler struct {
 	currencyService rateService
+	logger          *zap.Logger
 }
 
-func NewRateHandler(currencyService rateService) *RateHandler {
+func NewRateHandler(currencyService rateService, logger *zap.Logger) *RateHandler {
 	return &RateHandler{
 		currencyService: currencyService,
+		logger:          logger.With(zap.String("service", "RateHandler")),
 	}
 }
 
@@ -21,14 +24,11 @@ type rateService interface {
 }
 
 func (h *RateHandler) Rate(ctx *gin.Context) {
+	logger := h.logger.With(zap.String("method", "Rate"))
+
 	rate, err := h.currencyService.GetUAHToUSD()
 	if err != nil {
-		// commeted because documentation doesn't expect this
-		// if errors.Is(err, pkg.ErrCurrencyNotFound) {
-		// 	ctx.AbortWithStatus(http.StatusNotFound)
-		// 	return
-		// }
-
+		logger.Warn("can't retrieve rate", zap.Error(err))
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
