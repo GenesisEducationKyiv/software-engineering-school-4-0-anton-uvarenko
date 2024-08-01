@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"go.uber.org/zap"
 )
-
-// var produce
 
 var emailTopicName = "emails"
 
@@ -15,10 +14,13 @@ type subscribedEventPayload struct {
 }
 
 func (p *Producer) ProduceSubscribedEvent(email string) error {
+	logger := p.logger.With(zap.String("method", "ProduceSubscribedEvent"))
+
 	payload, err := json.Marshal(subscribedEventPayload{
 		Email: email,
 	})
 	if err != nil {
+		logger.Error("can't unmarshal payload", zap.Error(err))
 		return err
 	}
 
@@ -36,6 +38,7 @@ func (p *Producer) ProduceSubscribedEvent(email string) error {
 		},
 	})
 	if err != nil {
+		logger.Error("can't produce event", zap.Error(err))
 		return err
 	}
 
@@ -47,10 +50,13 @@ type unsubscribedEventPayload struct {
 }
 
 func (p *Producer) ProduceUnsubscribedEvent(email string) error {
+	logger := p.logger.With(zap.String("method", "ProduceUnsubscribedEvent"))
+
 	payload, err := json.Marshal(unsubscribedEventPayload{
 		Email: email,
 	})
 	if err != nil {
+		logger.Error("can't unmarshal payload", zap.Error(err))
 		return err
 	}
 
@@ -68,6 +74,7 @@ func (p *Producer) ProduceUnsubscribedEvent(email string) error {
 		},
 	})
 	if err != nil {
+		logger.Error("can't produce event", zap.Error(err))
 		return err
 	}
 
