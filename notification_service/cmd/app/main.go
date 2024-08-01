@@ -22,7 +22,8 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		panic(err)
+		fmt.Printf("can't load env: %v", err)
+		return
 	}
 
 	connection := db.Connect()
@@ -30,7 +31,8 @@ func main() {
 
 	logger, err := zap.NewProduction()
 	if err != nil {
-		panic(err)
+		fmt.Printf("can't create zap logger: %v", err)
+		return
 	}
 
 	emailSender := sender.NewEmailSender(os.Getenv("FROM_EMAIL"), os.Getenv("FROM_EMAIL_PASSWORD"), logger)
@@ -45,13 +47,14 @@ func main() {
 
 	scheduler, err := gocron.NewScheduler()
 	if err != nil {
-		panic(err)
+		logger.Error("can't initialize job scheduler", zap.Error(err))
+		return
 	}
 	rateJob := jobs.NewRateJob(scheduler, emailService, logger)
 	err = rateJob.RegisterJob()
 	if err != nil {
-		fmt.Printf("can't register job: %v", err)
-		panic(err)
+		logger.Error("can't register job", zap.Error(err))
+		return
 	}
 	scheduler.Start()
 
@@ -62,7 +65,7 @@ func main() {
 
 	err = scheduler.Shutdown()
 	if err != nil {
-		fmt.Printf("can't properly shutdown job scheduler: %v\n", err)
+		logger.Error("can't properly shutdown job scheduler", zap.Error(err))
 	}
 
 	err = connection.Close(context.Background())

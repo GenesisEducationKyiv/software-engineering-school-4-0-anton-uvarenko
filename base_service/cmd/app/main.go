@@ -29,7 +29,7 @@ func main() {
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Printf("can't load env: %v", err)
-		panic(err)
+		return
 	}
 
 	conn := db.Connect()
@@ -37,14 +37,15 @@ func main() {
 
 	logger, err := zap.NewProduction()
 	if err != nil {
-		panic(err)
+		fmt.Printf("can't create zap logger: %v", err)
+		return
 	}
 
 	kafkaProducer := producer.NewProducer(logger)
 	err = kafkaProducer.RegisterTopics()
 	if err != nil {
-		fmt.Printf("can't register topics: %v", err)
-		panic(err)
+		logger.Error("can't regiser topics", zap.Error(err))
+		return
 	}
 
 	emailService := emailService.NewEmailService(emailDBRepo, kafkaProducer, logger)
